@@ -88,7 +88,7 @@
                 <tr class="order-row">
                     <td>#<%= order.id %></td>
                     <td><%= order.username %></td>
-                    <td>$<%= order.total_amount.toFixed(2) %></td>
+                    <td>$<%= Number(order.total_amount).toFixed(2) %></td>
                     <td><%= order.status %></td>
                     <td><%= order.created_at.toLocaleString() %></td>
 

@@ -4,7 +4,6 @@ const db = require('../db');
 
 // =================================
 // SHOW CHECKOUT PAGE
-
 exports.checkoutPage = (req, res) => {
     const user = req.session.user;
 
@@ -26,7 +25,6 @@ exports.checkoutPage = (req, res) => {
 
 // ======================================
 // PROCESS CHECKOUT + STOCK DEDUCTION
-
 exports.processCheckout = (req, res) => {
     const user = req.session.user;
 
@@ -45,7 +43,9 @@ exports.processCheckout = (req, res) => {
             return res.redirect("/shopping");
         }
 
+        // ========================
         // CHECK STOCK
+        // ========================
         const stockChecks = cartItems.map(item => {
             return new Promise((resolve, reject) => {
                 db.query(
@@ -53,7 +53,8 @@ exports.processCheckout = (req, res) => {
                     [item.id],
                     (err, rows) => {
                         if (err) return reject(err);
-                        if (!rows.length) return reject(new Error(`Product not found`));
+                        if (rows.length === 0)
+                            return reject(new Error("Product not found."));
 
                         const stock = rows[0].quantity;
 
@@ -64,7 +65,6 @@ exports.processCheckout = (req, res) => {
                                 )
                             );
                         }
-
                         resolve();
                     }
                 );
@@ -73,29 +73,39 @@ exports.processCheckout = (req, res) => {
 
         Promise.all(stockChecks)
             .then(() => {
-                // TOTAL PRICE
-                let total = cartItems.reduce((sum, item) =>
-                    sum + item.price * item.quantity, 0
+
+                // ========================
+                // CALCULATE TOTAL
+                // ========================
+                let total = cartItems.reduce(
+                    (sum, item) => sum + (Number(item.price) * item.quantity),
+                    0
                 );
 
-                //  CREATE ORDER
+                // ========================
+                // CREATE ORDER
+                // ========================
                 OrderModel.createOrder(userId, total, (err, result) => {
                     if (err) throw err;
 
                     const orderId = result.insertId;
 
-                    //  INSERT ORDER ITEMS
+                    // ========================
+                    // INSERT ORDER ITEMS
+                    // ========================
                     const orderItems = cartItems.map(i => [
                         orderId,
                         i.id,
                         i.quantity,
-                        i.price
+                        Number(i.price)  // Ensure PRICE sent as number
                     ]);
 
                     OrderModel.addOrderItems(orderItems, (err2) => {
                         if (err2) throw err2;
 
-                        //  DEDUCT STOCK
+                        // ========================
+                        // DEDUCT STOCK
+                        // ========================
                         const deduct = cartItems.map(item => {
                             return new Promise((resolve, reject) => {
                                 db.query(
@@ -111,7 +121,9 @@ exports.processCheckout = (req, res) => {
 
                         Promise.all(deduct)
                             .then(() => {
-                                //  LOW STOCK ALERT
+                                // ========================
+                                // LOW STOCK ALERT
+                                // ========================
                                 db.query(
                                     "SELECT productName, quantity FROM products WHERE quantity <= 5",
                                     (errLow, lowStock) => {
@@ -123,17 +135,19 @@ exports.processCheckout = (req, res) => {
                                             );
                                         }
 
-                                        //  CLEAR CART
+                                        // CLEAR CART
                                         CartModel.clearCart(userId, () => {
 
-                                            //  LOAD ORDER SUMMARY
+                                            // ========================
+                                            // SHOW ORDER SUMMARY
+                                            // ========================
                                             OrderModel.getOrderItems(orderId, (err4, items) => {
                                                 if (err4) throw err4;
 
                                                 res.render("orders/confirmation", {
                                                     order: {
                                                         id: orderId,
-                                                        total,
+                                                        total: Number(total),
                                                         items
                                                     },
                                                     user
@@ -165,6 +179,12 @@ exports.adminOrdersPage = (req, res) => {
     OrderModel.getAllOrders((err, orders) => {
         if (err) throw err;
 
+        // Convert total_amount to number for .toFixed()
+        orders = orders.map(o => ({
+            ...o,
+            total_amount: Number(o.total_amount)
+        }));
+
         res.render("admin/orders", {
             orders,
             user: req.session.user
@@ -175,19 +195,28 @@ exports.adminOrdersPage = (req, res) => {
 
 // ======================================
 // ADMIN — VIEW ORDER DETAILS
-
 exports.adminOrderDetails = (req, res) => {
     const orderId = req.params.id;
 
     OrderModel.getOrderItems(orderId, (err, items) => {
         if (err) throw err;
 
+        // Fix numeric formatting in item.unit_price
+        items = items.map(i => ({
+            ...i,
+            unit_price: Number(i.unit_price)
+        }));
+
         OrderModel.getOrderById(orderId, (err2, orderInfo) => {
             if (err2) throw err2;
 
+            const order = orderInfo[0];
+            order.total_amount = Number(order.total_amount);
+
             res.render("admin/orderDetails", {
-                order: orderInfo[0],
+                order,
                 items,
+                orderId,
                 user: req.session.user
             });
         });
