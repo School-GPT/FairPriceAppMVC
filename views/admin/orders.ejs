@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Orders</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #3a1c71, #d76d77, #ffaf7b);
+            background-size: 300% 300%;
+            animation: gradientBG 18s ease infinite;
+            font-family: 'Poppins', sans-serif;
+            color: #fff;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50% }
+            50% { background-position: 100% 50% }
+            100% { background-position: 0% 50% }
+        }
+
+        .glass-table {
+            margin-top: 40px;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.13);
+            backdrop-filter: blur(12px);
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+        }
+
+        th {
+            color: #ffe8e8;
+        }
+
+        .order-row {
+            transition: 0.3s;
+        }
+        .order-row:hover {
+            transform: scale(1.01);
+            background: rgba(255,255,255,0.2);
+        }
+
+        .btn-view {
+            background: #ffefba;
+            color: #222;
+            font-weight: bold;
+            border-radius: 12px;
+            padding: 6px 14px;
+        }
+
+        .btn-view:hover {
+            background: #fff;
+        }
+
+        .title {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 2.2rem;
+            font-weight: 800;
+            text-shadow: 0 3px 10px rgba(0,0,0,0.4);
+        }
+    </style>
+
+</head>
+<body>
+
+<%- include('../partials/navbar', { user: user }) %>
+
+<h2 class="title"> Admin Order Management</h2>
+
+<div class="container">
+    <div class="glass-table">
+
+        <table class="table table-borderless align-middle text-white">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>User</th>
+                    <th>Total Amount</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <% orders.forEach(order => { %>
+                <tr class="order-row">
+                    <td>#<%= order.id %></td>
+                    <td><%= order.username %></td>
+                    <td>$<%= order.total_amount.toFixed(2) %></td>
+                    <td><%= order.status %></td>
+                    <td><%= order.created_at.toLocaleString() %></td>
+
+                    <td>
+                        <a href="/admin/orders/<%= order.id %>" class="btn-view">
+                            View Items →
+                        </a>
+                    </td>
+                </tr>
+                <% }) %>
+            </tbody>
+
+        </table>
+
+    </div>
+</div>
+
+</body>
+</html>

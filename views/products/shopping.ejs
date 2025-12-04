@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping - Supermarket App</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-image: url('/images/pokemon-bg2.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .glass-container {
+            width: 95%;
+            margin: 20px auto;
+            padding: 20px;
+            background: rgba(255,255,255,0.40);
+            backdrop-filter: blur(8px);
+            border-radius: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .page-title {
+            text-align: center;
+            font-weight: 800;
+            margin-top: 15px;
+            color: #222;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .product-card {
+            border-radius: 20px;
+            border: none;
+            background: rgba(255,255,255,0.65);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+            backdrop-filter: blur(6px);
+            padding: 20px;
+            transition: .3s;
+        }
+
+        .product-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+        }
+
+        .product-img {
+            width: 100%;
+            height: 190px;
+            object-fit: contain;
+            margin-bottom: 15px;
+        }
+
+        .btn-add {
+            background: linear-gradient(to right, #ff7a7a, #ff4747);
+            color: white;
+            width: 100%;
+            font-size: 1rem;
+            padding: 10px;
+            border-radius: 15px;
+            border: none;
+            font-weight: bold;
+        }
+
+        .btn-add:hover {
+            background: #c90000;
+        }
+
+        .category-btn {
+            border-radius: 20px;
+            padding: 8px 18px;
+            font-weight: bold;
+            margin: 3px;
+        }
+
+        .category-btn.active {
+            background-color: #ff4d4d;
+            color: white;
+        }
+
+        .admin-btn {
+            display: inline-block;
+            float: right;
+            padding: 8px 15px;
+            margin-right: 10px;
+            background: #b896f1;
+            border-radius: 18px;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+
+        .admin-btn:hover {
+            background: #8d65d9;
+        }
+    </style>
+</head>
+
+<body>
+
+<%- include('../partials/navbar', { user: user }) %>
+
+<div class="container mt-3">
+    <%- include('../partials/alerts', { errors: errors, messages: messages }) %>
+</div>
+
+<div class="glass-container">
+
+    <% if (user && user.role === 'admin') { %>
+        <a href="/inventory" class="admin-btn">⚙ Manage Inventory</a>
+    <% } %>
+
+    <h2 class="page-title">Inventory</h2>
+
+    <!-- SEARCH + SORT -->
+    <div class="row mt-4 mb-4">
+
+        <div class="col-md-6">
+            <input type="text" id="searchBox" class="form-control"
+                   placeholder="Search products..."
+                   style="border-radius:15px; padding:10px;">
+        </div>
+
+        <div class="col-md-4">
+            <select id="sortOptions" class="form-control"
+                    style="border-radius:15px; padding:10px;">
+                <option value="default">Sort By</option>
+                <option value="priceAsc">Price: Low → High</option>
+                <option value="priceDesc">Price: High → Low</option>
+                <option value="nameAsc">Name: A → Z</option>
+                <option value="nameDesc">Name: Z → A</option>
+            </select>
+        </div>
+
+    </div>
+
+    <!-- CATEGORY FILTERS -->
+    <div class="text-center mb-4" id="categoryButtons">
+        <button class="btn btn-outline-dark category-btn active" data-category="All">All</button>
+
+        <% categories.forEach(cat => { %>
+            <button class="btn btn-outline-dark category-btn" data-category="<%= cat %>">
+                <%= cat %>
+            </button>
+        <% }) %>
+    </div>
+
+    <!-- PRODUCTS GRID -->
+    <div class="row g-4 mt-4" id="productList">
+
+        <% products.forEach(product => { %>
+
+        <div class="col-md-4 col-lg-3 product-card-container"
+             data-name="<%= product.productName %>"
+             data-price="<%= product.price %>"
+             data-category="<%= product.category %>">
+
+            <div class="product-card">
+
+                <img src="/images/<%= product.image %>" class="product-img">
+
+                <% if (product.quantity == 0) { %>
+                    <span class="badge bg-danger w-100 mb-2">OUT OF STOCK</span>
+                <% } %>
+
+                <h5 class="fw-bold"><%= product.productName %></h5>
+                <p class="text-danger fw-bold">$<%= product.price.toFixed(2) %></p>
+
+                <% if (product.quantity > 0) { %>
+                    <form action="/cart/add/<%= product.id %>" method="POST">
+                        <input type="number" name="quantity" value="1" min="1" class="form-control mb-2">
+                        <button class="btn-add">Add to Cart</button>
+                    </form>
+                <% } else { %>
+                    <button class="btn btn-secondary w-100 mb-2" disabled>Out of Stock</button>
+                <% } %>
+
+                <a href="/product/<%= product.id %>" class="btn btn-outline-dark btn-details w-100 mt-2">
+                    Details
+                </a>
+
+            </div>
+        </div>
+
+        <% }) %>
+
+    </div>
+
+</div>
+
+<script>
+    const searchBox = document.getElementById("searchBox");
+    const sortOptions = document.getElementById("sortOptions");
+    const productList = document.getElementById("productList");
+    const products = Array.from(document.querySelectorAll(".product-card-container"));
+    const categoryButtons = document.querySelectorAll("#categoryButtons .category-btn");
+    let activeCategory = "All";
+
+    searchBox.addEventListener("keyup", applyFilters);
+    sortOptions.addEventListener("change", applyFilters);
+
+    categoryButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            activeCategory = btn.dataset.category;
+
+            categoryButtons.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+
+            applyFilters();
+        });
+    });
+
+    function applyFilters() {
+        let filtered = [...products];
+
+        if (activeCategory !== "All") {
+            filtered = filtered.filter(p => p.dataset.category === activeCategory);
+        }
+
+        const searchValue = searchBox.value.toLowerCase();
+        filtered = filtered.filter(p =>
+            p.dataset.name.toLowerCase().includes(searchValue)
+        );
+
+        switch (sortOptions.value) {
+            case "priceAsc":
+                filtered.sort((a, b) => a.dataset.price - b.dataset.price);
+                break;
+            case "priceDesc":
+                filtered.sort((a, b) => b.dataset.price - a.dataset.price);
+                break;
+            case "nameAsc":
+                filtered.sort((a, b) => a.dataset.name.localeCompare(b.dataset.name));
+                break;
+            case "nameDesc":
+                filtered.sort((a, b) => b.dataset.name.localeCompare(a.dataset.name));
+                break;
+        }
+
+        productList.innerHTML = "";
+        filtered.forEach(p => productList.appendChild(p));
+    }
+</script>
+
+</body>
+</html>

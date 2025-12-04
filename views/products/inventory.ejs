@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory - Supermarket App</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-image: url('/images/pokemon-bg2.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            padding: 0;
+            margin: 0;
+        }
+
+        .glass-container {
+            width: 90%;
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.40);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.20);
+        }
+
+        h1 {
+            text-align: center;
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: #222;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .product-card {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+            transition: 0.3s;
+            text-align: center;
+            position: relative;
+        }
+
+        .product-card:hover {
+            transform: scale(1.05);
+        }
+
+        .badge-stock {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+
+        .badge-low {
+            background: #ffc107;
+            color: #222;
+        }
+
+        .badge-out {
+            background: #dc3545;
+            color: white;
+        }
+
+        .product-card img {
+            height: 150px;
+            object-fit: contain;
+            margin-bottom: 10px;
+        }
+
+        .btn-edit, .btn-delete {
+            width: 100%;
+            border-radius: 20px;
+            font-weight: bold;
+            padding: 8px;
+            margin-top: 10px;
+            border: none;
+            color: white;
+        }
+
+        .btn-edit {
+            background: linear-gradient(to right, #5b8cff, #87b0ff);
+        }
+
+        .btn-delete {
+            background: linear-gradient(to right, #ff5454, #ff7b7b);
+        }
+
+        .top-bar {
+            width: 100%;
+            background: #b896f1;
+            padding: 8px 20px;
+            color: white;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .add-btn {
+            background: linear-gradient(to right, #8cff8c, #b3ffb3);
+            border-radius: 20px;
+            padding: 10px 18px;
+            color: #222;
+            border: none;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .add-btn:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<%- include('../partials/navbar') %>
+
+<!-- Purple Header Bar -->
+<div class="top-bar">
+    <span style="font-size: 22px;">📦 Inventory Management</span>
+
+    <button onclick="window.location.href='/addProduct'" class="add-btn ms-auto">
+        ➕ Add New Product
+    </button>
+</div>
+
+<!-- Glass Inventory Panel -->
+<div class="glass-container">
+
+    <h1>Current Stock</h1>
+
+    <!-- ALERTS FOR LOW / EMPTY STOCK -->
+    <% if (lowStock.length > 0) { %>
+        <div class="alert alert-warning fw-bold">
+            ⚠ Low Stock Items:
+            <%= lowStock.map(p => p.productName + " (" + p.quantity + ")").join(", ") %>
+        </div>
+    <% } %>
+
+    <% if (outOfStock.length > 0) { %>
+        <div class="alert alert-danger fw-bold">
+            ❌ Out of Stock:
+            <%= outOfStock.map(p => p.productName).join(", ") %>
+        </div>
+    <% } %>
+
+    <div class="row g-4">
+
+        <% products.forEach(product => { %>
+
+        <div class="col-md-4">
+            <div class="product-card">
+
+                <!-- BADGE (low or zero stock) -->
+                <% if (product.quantity === 0) { %>
+                    <span class="badge-stock badge-out">OUT OF STOCK</span>
+                <% } else if (product.quantity <= 5) { %>
+                    <span class="badge-stock badge-low">LOW STOCK</span>
+                <% } %>
+
+                <img src="/images/<%= product.image %>" alt="Product">
+
+                <h4><%= product.productName %></h4>
+                <p><strong>Stock:</strong> <%= product.quantity %></p>
+                <p><strong>Price:</strong> $<%= product.price %></p>
+
+                <a href="/updateProduct/<%= product.id %>" class="btn-edit">Edit</a>
+
+                <a href="/deleteProduct/<%= product.id %>" 
+                   class="btn-delete"
+                   onclick="return confirm('Are you sure you want to delete this product?');">
+                   Delete
+                </a>
+
+            </div>
+        </div>
+
+        <% }) %>
+
+    </div>
+
+</div>
+
+</body>
+</html>
