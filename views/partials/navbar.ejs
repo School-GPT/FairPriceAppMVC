@@ -1,16 +1,24 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark" style="background:#1f1f1f;">
   <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="/">FairPrice App</a>
 
+    <!-- Logo -->
+    <a class="navbar-brand fw-bold" href="/" style="letter-spacing:1px;">
+      FairPrice App
+    </a>
+
+    <!-- Toggle Button -->
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
     </button>
 
+    <!-- Menu Items -->
     <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
+      <ul class="navbar-nav ms-auto align-items-center">
 
         <% if (!user) { %>
-            <!-- Not logged in -->
+            <!-- ======================
+                 NOT LOGGED IN
+            ======================= -->
             <li class="nav-item">
               <a class="nav-link" href="/login">Login</a>
             </li>
@@ -20,31 +28,51 @@
             </li>
 
         <% } else { %>
-            <!-- Logged in -->
+            <!-- ======================
+                 LOGGED IN USER
+            ======================= -->
+
             <% if (user.role === 'admin') { %>
+                <!-- Admin menu -->
+                <li class="nav-item">
+                  <a class="nav-link" href="/admin/dashboard">Dashboard</a>
+                </li>
+
                 <li class="nav-item">
                   <a class="nav-link" href="/inventory">Inventory</a>
                 </li>
+
+                <li class="nav-item">
+                  <a class="nav-link" href="/admin/orders">Orders</a>
+                </li>
             <% } %>
 
+            <!-- Common menu for all logged-in users -->
             <li class="nav-item">
               <a class="nav-link" href="/shopping">Shopping</a>
             </li>
 
+            <li class="nav-item position-relative">
+              <a class="nav-link" href="/cart">
+                Cart
+              </a>
+            </li>
+
+            <!-- Greeting -->
             <li class="nav-item">
-              <a class="nav-link" href="/cart">Cart</a>
+              <span class="nav-link text-info fw-bold">
+                👋 Hi, <%= user.username %>
+              </span>
             </li>
 
             <li class="nav-item">
-              <a class="nav-link text-warning">Hi, <%= user.username %></a>
+              <a class="nav-link text-danger fw-bold" href="/logout">Logout</a>
             </li>
 
-            <li class="nav-item">
-              <a class="nav-link text-danger" href="/logout">Logout</a>
-            </li>
         <% } %>
 
       </ul>
     </div>
+
   </div>
 </nav>

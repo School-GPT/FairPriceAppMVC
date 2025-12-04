@@ -15,6 +15,7 @@ const ProductController = require('./controllers/ProductController');
 const AuthController = require('./controllers/AuthController');
 const CartController = require('./controllers/CartController');
 const OrderController = require('./controllers/OrderController');
+const AdminController = require('./controllers/AdminController');
 
 // Middlewares
 const { checkAuthenticated } = require('./middlewares/authMiddleware');
@@ -83,7 +84,7 @@ app.get('/deleteProduct/:id', checkAuthenticated, checkAdmin, ProductController.
 // ====================== ADMIN ORDER MANAGEMENT ======================
 app.get('/admin/orders', checkAuthenticated, checkAdmin, OrderController.adminOrdersPage);
 app.get('/admin/orders/:id', checkAuthenticated, checkAdmin, OrderController.adminOrderDetails);
-
+app.get('/admin/dashboard', checkAuthenticated, checkAdmin, AdminController.dashboard);
 // ====================== CART ROUTES (DATABASE) ======================
 
 // Add item to cart
